@@ -44,11 +44,6 @@ public class HBaseWindowManager {
     }
 
     public void apply() {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        });
+        ApplicationManager.getApplication().invokeLater(explorerPanel::apply);
     }
 }

@@ -27,6 +27,8 @@
                     serviceImplementation="com.codescv.intellij.plugin.hbase.view.HBaseWindowManager"/>
     <projectService serviceInterface="com.codescv.intellij.plugin.hbase.logic.HBaseManager"
                     serviceImplementation="com.codescv.intellij.plugin.hbase.logic.HBaseManager"/>
+    <projectService serviceInterface="com.codescv.intellij.plugin.hbase.HBasePluginConfiguration"
+                    serviceImplementation="com.codescv.intellij.plugin.hbase.HBasePluginConfiguration"/>
   </extensions>
 
   <application-components>

@@ -1,5 +1,6 @@
 package com.codescv.intellij.plugin.hbase.view;
 
+import com.codescv.intellij.plugin.hbase.HBasePluginConfiguration;
 import com.codescv.intellij.plugin.hbase.logic.HBaseManager;
 import com.codescv.intellij.plugin.hbase.model.HBaseServer;
 import com.codescv.intellij.plugin.hbase.model.HBaseServerConfiguration;
@@ -11,31 +12,33 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import org.apache.hadoop.hbase.HBaseConfiguration;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.*;
 
 /**
  * explorer panel (main tool window ui)
  */
 public class HBaseExplorerPanel extends JPanel implements Disposable {
     private JPanel rootPanel;
-    private JLabel titleLabel;
     private JPanel toolBarPanel;
     private JPanel treePanel;
+    private JButton addServerButton;
 
     private Tree serverTree;
     private Project project;
 
     public HBaseExplorerPanel(Project project) {
         this.project = project;
-
-        titleLabel.setText("ToolBar");
 
         // database server trees
         serverTree = createTree();
@@ -51,6 +54,28 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
         add(rootPanel, BorderLayout.CENTER);
 
         ApplicationManager.getApplication().invokeLater(this::reloadAllServers);
+
+        addServerButton.addActionListener(e -> addServerConfiguration());
+    }
+
+    private void addServerConfiguration() {
+        HBaseServerConfiguration configuration = HBaseServerConfiguration.defaultConfiguration();
+        HBaseServerConfigDialog dialog = new HBaseServerConfigDialog(configuration, this.project);
+        dialog.setTitle("Add a HBase Server");
+        dialog.setLocationRelativeTo(this.toolBarPanel);
+        dialog.setLocation(10, 80);
+        dialog.pack();
+        dialog.setVisible(true);
+
+        if (dialog.isOK()) {
+            System.out.println("save configuration!");
+            HBasePluginConfiguration.getInstance(this.project).getServerConfigurations().add(configuration);
+            // apply configuration and refresh UI
+            HBaseWindowManager.getInstance(this.project).apply();
+            System.out.println("xxx");
+        } else {
+            System.out.println("cancel");
+        }
     }
 
     private Tree createTree() {
@@ -58,15 +83,14 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
         Tree tree = new Tree() {
 
             private final JLabel myLabel = new JLabel(
-                    String.format("<html><center>No Mongo server available<br><br>You may use <img src=\"%s\"> to add configuration</center></html>", "")
+                    "<html><center>No server available<br><br>You may use the add button to add configuration</center></html>"
             );
 
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                //if (!getServerConfigurations().isEmpty()) return;
-                if (true)
-                    return;
+                if (!HBasePluginConfiguration.getInstance(HBaseExplorerPanel.this.project).getServerConfigurations().isEmpty()) return;
+
                 myLabel.setFont(getFont());
                 myLabel.setBackground(getBackground());
                 myLabel.setForeground(getForeground());
@@ -92,23 +116,33 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
 
     private void reloadAllServers() {
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
-            serverTree.setRootVisible(false);
+
             final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
 
             HBaseManager manager = HBaseManager.getInstance(this.project);
-            manager.reloadServers();
-            for (HBaseServer server: manager.getServers()) {
+            HBasePluginConfiguration configuration = HBasePluginConfiguration.getInstance(this.project);
+            manager.reloadServers(configuration);
+
+            for (HBaseServer server : manager.getServers()) {
                 final DefaultMutableTreeNode serverNode = new DefaultMutableTreeNode(server);
-                for (HBaseTable table: server.getTables()) {
+                for (HBaseTable table : server.getTables()) {
                     serverNode.add(new DefaultMutableTreeNode(table));
                 }
                 rootNode.add(serverNode);
             }
 
-            serverTree.invalidate();
-            serverTree.setModel(new DefaultTreeModel(rootNode));
-            serverTree.revalidate();
+            ApplicationManager.getApplication().invokeLater(() -> {
+                serverTree.setRootVisible(false);
+                serverTree.invalidate();
+                serverTree.setModel(new DefaultTreeModel(rootNode));
+                serverTree.revalidate();
+            });
+
         });
+    }
+
+    public void apply() {
+        reloadAllServers();
     }
 
     public void installActions() {
@@ -132,6 +166,8 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
             }
         });
     }
+
+
 
     private void openViewerForSelectedTable() {
         HBaseTable table = getSelectedTable();

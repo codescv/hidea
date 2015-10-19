@@ -1,5 +1,6 @@
 package com.codescv.intellij.plugin.hbase.logic;
 
+import com.codescv.intellij.plugin.hbase.HBasePluginConfiguration;
 import com.codescv.intellij.plugin.hbase.model.HBaseServer;
 import com.codescv.intellij.plugin.hbase.model.HBaseServerConfiguration;
 import com.codescv.intellij.plugin.hbase.model.HBaseTable;
@@ -32,18 +33,17 @@ public class HBaseManager {
         return ServiceManager.getService(project, HBaseManager.class);
     }
 
-    public void reloadServers() {
-        // TODO load configurations from user settings
-        serverConfigurations.clear();
-        HBaseServerConfiguration defaultConfig = new HBaseServerConfiguration();
-        defaultConfig.setName("localhost");
-        serverConfigurations.add(defaultConfig);
+    public void reloadServers(HBasePluginConfiguration configuration) {
+        serverConfigurations = configuration.getServerConfigurations();
 
         // load tables on servers
         servers.clear();
         for (HBaseServerConfiguration serverConfig: serverConfigurations) {
             HBaseServer server = new HBaseServer(serverConfig);
             Configuration config = serverConfig.getHBaseConfiguration();
+
+            // System.out.println("quorum:" + config.get("hbase.zookeeper.quorum"));
+            // System.out.println("port:" + config.get("hbase.zookeeper.property.clientPort"));
 
             try {
                 Connection connection = ConnectionFactory.createConnection(config);
