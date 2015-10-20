@@ -84,13 +84,15 @@ public class HBaseManager {
         return null;
     }
 
-    public ResultScanner scan(HBaseServerConfiguration serverConfig, String tableName) {
+    public ResultScanner scan(HBaseServerConfiguration serverConfig, String tableName, String rowPrefix) {
         Table table = getTable(serverConfig, tableName);
         if (table == null) {
             return null;
         }
 
         Scan scan = new Scan();
+        if (!rowPrefix.isEmpty())
+            scan.setRowPrefixFilter(rowPrefix.getBytes());
         scan.setCaching(1000);
         scan.setCacheBlocks(false);
 

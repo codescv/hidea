@@ -1,7 +1,8 @@
 # Hbase Plugin for IntelliJ IDEA
 
 ## Description
-provide simple querying of hbase tables
+Provide simple querying interface of hbase tables. This plugin is mainly used for development/testing purposes(especially local development databases), so a full
+list of configuring options might not be supported. Use at your own risk!
 
 ## Debugging instructions
 1. set up development environment according to instructions [here](http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/setting_up_environment.html)
@@ -25,11 +26,9 @@ provide simple querying of hbase tables
 3. mvn clean package
 
 ## TODO
-1. Support querying by row prefix
-1. Support server settings
 1. Add maven build
-1. Support editing values
-1. Support deleting rows
+1. Support editing, deleting and copying values
+1. Support filtering by columns
 
 ## Acknowlegement
 [mongo4idea](https://github.com/dboissier/mongo4idea) a great reference of Intellij Idea plugin development.

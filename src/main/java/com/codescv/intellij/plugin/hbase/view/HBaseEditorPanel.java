@@ -43,12 +43,7 @@ public class HBaseEditorPanel extends JPanel implements Disposable {
         this.table = table;
         this.hBaseManager = hBaseManager;
 
-        updateButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("button action performed");
-            }
-        });
+        updateButton.addActionListener(e -> showResults());
 
         rowLabel.setText("row:");
 
@@ -64,21 +59,31 @@ public class HBaseEditorPanel extends JPanel implements Disposable {
 
     public void showResults() {
         System.out.println("show results");
+        String rowPrefix = rowTextField.getText();
+
+        // default limit
+        int limit = 50;
+
+        try {
+            limit = Integer.parseInt(limitTextField.getText());
+        } catch (NumberFormatException e) {
+            // ignore if empty
+        }
+
         final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-        ResultScanner results = this.hBaseManager.scan(this.configuration, this.table.getName());
+        ResultScanner results = this.hBaseManager.scan(this.configuration, this.table.getName(), rowPrefix);
 
         int counter = 0;
         for (Result r : results) {
             DefaultMutableTreeNode rowNode = new DefaultMutableTreeNode();
             String row = new String(r.getRow());
             rowNode.setUserObject(row);
-            System.out.println("row:" + row);
+            // System.out.println("row:" + row);
             for (Cell cell : r.listCells()) {
                 String family = new String(cell.getFamilyArray(), cell.getFamilyOffset(), cell.getFamilyLength());
                 String qualifier = new String(cell.getQualifierArray(), cell.getQualifierOffset(), cell.getQualifierLength());
 
                 byte[] valueArray = cell.getValueArray();
-                StringBuilder value = new StringBuilder();
 
                 boolean isVisibleString = true;
                 for (int i = cell.getValueOffset(); i < cell.getValueOffset() + cell.getValueLength(); i++) {
@@ -89,23 +94,26 @@ public class HBaseEditorPanel extends JPanel implements Disposable {
                     }
                 }
 
-                for (int i = cell.getValueOffset(); i < cell.getValueOffset() + cell.getValueLength(); i++) {
-                    byte b = valueArray[i];
-                    if (isVisibleString) {
-                        value.append(b);
-                    } else {
-                        value.append(String.format("\\x%02d", b));
+                String value;
+                if (isVisibleString) {
+                    value = new String(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
+                } else {
+                    StringBuilder valueBuilder = new StringBuilder();
+                    for (int i = cell.getValueOffset(); i < cell.getValueOffset() + cell.getValueLength(); i++) {
+                        byte b = valueArray[i];
+                        valueBuilder.append(String.format("\\x%02x", b & 0xFF));
                     }
+                    value = valueBuilder.toString();
                 }
 
-                String data = family + ":" + qualifier + "->" + value.toString();
+                String data = family + ":" + qualifier + "->" + value;
                 DefaultMutableTreeNode rowDataNode = new DefaultMutableTreeNode(data);
                 rowNode.add(rowDataNode);
             }
 
             rootNode.add(rowNode);
 
-            if (++counter >= 10)
+            if (++counter >= limit)
                 break;
         }
 
