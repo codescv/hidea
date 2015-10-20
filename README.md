@@ -31,3 +31,6 @@ provide simple querying of hbase tables
 1. Support editing values
 1. Support deleting rows
 
+## Acknowlegement
+[mongo4idea](https://github.com/dboissier/mongo4idea) a great reference of Intellij Idea plugin development.
+

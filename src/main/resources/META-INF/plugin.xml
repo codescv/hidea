@@ -2,7 +2,7 @@
   <id>com.codescv.intellij.plugin.hbase</id>
   <name>HBase Plugin for Idea</name>
   <version>1.0</version>
-  <vendor email="chi.zhang@codescv.com" url="http://codescv.github.com">Chi Zhang</vendor>
+  <vendor email="chi.zhang@codescv.com" url="http://blog.codescv.com">Chi Zhang</vendor>
 
   <description><![CDATA[
       HBase table viewer plugin for Intellij Idea.

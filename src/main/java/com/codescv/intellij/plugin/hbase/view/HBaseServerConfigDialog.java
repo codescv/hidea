@@ -20,6 +20,10 @@ public class HBaseServerConfigDialog extends JDialog {
     private boolean isOK;
 
     public HBaseServerConfigDialog(HBaseServerConfiguration configuration, Project project) {
+        //JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+
+        //super(topFrame);
+
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);

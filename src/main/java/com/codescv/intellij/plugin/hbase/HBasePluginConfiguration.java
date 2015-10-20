@@ -22,6 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @State(
@@ -34,7 +35,7 @@ import java.util.List;
 
 public class HBasePluginConfiguration implements PersistentStateComponent<HBasePluginConfiguration> {
 
-    private List<HBaseServerConfiguration> serverConfigurations = new ArrayList<>();
+    private List<HBaseServerConfiguration> serverConfigurations = new LinkedList<>();
 
     public static HBasePluginConfiguration getInstance(Project project) {
         return ServiceManager.getService(project, HBasePluginConfiguration.class);
@@ -54,5 +55,17 @@ public class HBasePluginConfiguration implements PersistentStateComponent<HBaseP
 
     public List<HBaseServerConfiguration> getServerConfigurations() {
         return serverConfigurations;
+    }
+
+    public void removeServerConfig(HBaseServerConfiguration config) {
+        HBaseServerConfiguration configToRemove = null;
+        for (HBaseServerConfiguration c : serverConfigurations) {
+            if (c.equals(config)) {
+                configToRemove = c;
+            }
+        }
+
+        if (configToRemove != null)
+            serverConfigurations.remove(configToRemove);
     }
 }

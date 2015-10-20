@@ -5,25 +5,31 @@ import com.codescv.intellij.plugin.hbase.logic.HBaseManager;
 import com.codescv.intellij.plugin.hbase.model.HBaseServer;
 import com.codescv.intellij.plugin.hbase.model.HBaseServerConfiguration;
 import com.codescv.intellij.plugin.hbase.model.HBaseTable;
+import com.codescv.intellij.plugin.hbase.utils.GuiUtils;
 import com.codescv.intellij.plugin.hbase.view.editor.HBaseFileSystem;
 import com.codescv.intellij.plugin.hbase.view.editor.HBaseObjectFile;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.CommonActionsManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.DialogWrapperDialog;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
-import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 
 /**
  * explorer panel (main tool window ui)
@@ -32,7 +38,6 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
     private JPanel rootPanel;
     private JPanel toolBarPanel;
     private JPanel treePanel;
-    private JButton addServerButton;
 
     private Tree serverTree;
     private Project project;
@@ -55,15 +60,49 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
 
         ApplicationManager.getApplication().invokeLater(this::reloadAllServers);
 
-        addServerButton.addActionListener(e -> addServerConfiguration());
+        DefaultActionGroup actionGroup = new DefaultActionGroup("HBaseExplorerGroup", false);
+
+        actionGroup.add(new AnAction(AllIcons.General.Add) {
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+                //System.out.println("add server");
+                addServerConfiguration();
+            }
+        });
+
+        actionGroup.add(new AnAction(AllIcons.General.Remove) {
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+                DefaultMutableTreeNode selectedServerNode = getSelectedServerNode();
+                if (selectedServerNode == null)
+                    return;
+                int result = JOptionPane.showConfirmDialog(toolBarPanel,
+                                                           "confirm deleting server?",
+                                                           UIManager.getString("OptionPane.titleText"),
+                                                           JOptionPane.YES_NO_OPTION);
+                if (result == JOptionPane.OK_OPTION) {
+                    HBaseServer server = (HBaseServer) selectedServerNode.getUserObject();
+                    HBaseServerConfiguration serverConfiguration = server.getConfig();
+                    HBasePluginConfiguration pluginConfiguration = HBasePluginConfiguration.getInstance(HBaseExplorerPanel.this.project);
+                    pluginConfiguration.removeServerConfig(serverConfiguration);
+                    reloadAllServers();
+                } else {
+                    System.out.println("cancelled");
+                }
+            }
+        });
+
+        toolBarPanel.setLayout(new BorderLayout());
+        GuiUtils.installActionGroupInToolBar(actionGroup, toolBarPanel, ActionManager.getInstance(), "HBaseExplorerActions", true);
+
     }
 
     private void addServerConfiguration() {
         HBaseServerConfiguration configuration = HBaseServerConfiguration.defaultConfiguration();
         HBaseServerConfigDialog dialog = new HBaseServerConfigDialog(configuration, this.project);
         dialog.setTitle("Add a HBase Server");
-        dialog.setLocationRelativeTo(this.toolBarPanel);
-        dialog.setLocation(10, 80);
+        dialog.setLocationRelativeTo(toolBarPanel);
+        //dialog.setLocation(10, 80);
         dialog.pack();
         dialog.setVisible(true);
 
@@ -166,8 +205,6 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
             }
         });
     }
-
-
 
     private void openViewerForSelectedTable() {
         HBaseTable table = getSelectedTable();
