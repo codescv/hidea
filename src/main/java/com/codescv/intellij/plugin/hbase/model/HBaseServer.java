@@ -7,7 +7,7 @@ import java.util.List;
  * represents a hbase server
  */
 public class HBaseServer {
-    private List<HBaseTable> tables = new ArrayList<>();
+    private List<HBaseTable> tables = new ArrayList<HBaseTable>();
     private HBaseServerConfiguration config;
 
     public HBaseServer(HBaseServerConfiguration config) {

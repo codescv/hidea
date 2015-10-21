@@ -23,7 +23,12 @@ public class HBaseDataEditor extends UserDataHolderBase implements FileEditor {
 
     public HBaseDataEditor(Project project, HBaseManager hBaseManager, HBaseObjectFile HBaseObjectFile) {
         panel = new HBaseEditorPanel(project, hBaseManager, HBaseObjectFile.getConfiguration(), HBaseObjectFile.getTable());
-        ApplicationManager.getApplication().invokeLater(panel::showResults);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                panel.showResults();
+            }
+        });
     }
 
     @NotNull

@@ -22,8 +22,8 @@ import java.util.NavigableMap;
  * manage the CRUD operations on the tables of those servers
  */
 public class HBaseManager {
-    private List<HBaseServer> servers = new ArrayList<>();
-    private List<HBaseServerConfiguration> serverConfigurations = new ArrayList<>();
+    private List<HBaseServer> servers = new ArrayList<HBaseServer>();
+    private List<HBaseServerConfiguration> serverConfigurations = new ArrayList<HBaseServerConfiguration>();
 
     public HBaseManager() {
 
@@ -49,7 +49,7 @@ public class HBaseManager {
                 Connection connection = ConnectionFactory.createConnection(config);
                 Admin admin = connection.getAdmin();
                 HTableDescriptor[] tableDescriptor = admin.listTables();
-                List<HBaseTable> tables = new ArrayList<>();
+                List<HBaseTable> tables = new ArrayList<HBaseTable>();
                 for (HTableDescriptor tableDesc : tableDescriptor) {
                     String tableName = tableDesc.getNameAsString();
                     tables.add(new HBaseTable(tableName));

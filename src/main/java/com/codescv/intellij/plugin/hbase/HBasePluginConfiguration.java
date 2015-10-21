@@ -35,7 +35,7 @@ import java.util.List;
 
 public class HBasePluginConfiguration implements PersistentStateComponent<HBasePluginConfiguration> {
 
-    private List<HBaseServerConfiguration> serverConfigurations = new LinkedList<>();
+    private List<HBaseServerConfiguration> serverConfigurations = new LinkedList<HBaseServerConfiguration>();
 
     public static HBasePluginConfiguration getInstance(Project project) {
         return ServiceManager.getService(project, HBasePluginConfiguration.class);

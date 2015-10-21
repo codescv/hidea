@@ -43,7 +43,12 @@ public class HBaseEditorPanel extends JPanel implements Disposable {
         this.table = table;
         this.hBaseManager = hBaseManager;
 
-        updateButton.addActionListener(e -> showResults());
+        updateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showResults();
+            }
+        });
 
         rowLabel.setText("row:");
 

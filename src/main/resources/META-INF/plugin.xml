@@ -1,15 +1,15 @@
 <idea-plugin version="2">
   <id>com.codescv.intellij.plugin.hbase</id>
   <name>HBase Plugin for Idea</name>
-  <version>1.0</version>
+  <version>0.1.0</version>
   <vendor email="chi.zhang@codescv.com" url="http://blog.codescv.com">Chi Zhang</vendor>
 
   <description><![CDATA[
-      HBase table viewer plugin for Intellij Idea.
+      HBase table viewer plugin for Intellij Idea. This plugin is mainly used for prototyping and testing. Use at your own risk!
     ]]></description>l
 
   <change-notes><![CDATA[
-      Initial version.
+      0.1.0 add simple table querying interface. support adding multiple servers.
     ]]>
   </change-notes>
 

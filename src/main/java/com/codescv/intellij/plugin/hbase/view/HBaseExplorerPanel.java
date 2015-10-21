@@ -58,7 +58,12 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
         setLayout(new BorderLayout());
         add(rootPanel, BorderLayout.CENTER);
 
-        ApplicationManager.getApplication().invokeLater(this::reloadAllServers);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                reloadAllServers();
+            }
+        });
 
         DefaultActionGroup actionGroup = new DefaultActionGroup("HBaseExplorerGroup", false);
 
@@ -154,30 +159,35 @@ public class HBaseExplorerPanel extends JPanel implements Disposable {
     }
 
     private void reloadAllServers() {
-        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        ApplicationManager.getApplication().executeOnPooledThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
 
-            final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
+                        HBaseManager manager = HBaseManager.getInstance(project);
+                        HBasePluginConfiguration configuration = HBasePluginConfiguration.getInstance(project);
+                        manager.reloadServers(configuration);
 
-            HBaseManager manager = HBaseManager.getInstance(this.project);
-            HBasePluginConfiguration configuration = HBasePluginConfiguration.getInstance(this.project);
-            manager.reloadServers(configuration);
+                        for (HBaseServer server : manager.getServers()) {
+                            final DefaultMutableTreeNode serverNode = new DefaultMutableTreeNode(server);
+                            for (HBaseTable table : server.getTables()) {
+                                serverNode.add(new DefaultMutableTreeNode(table));
+                            }
+                            rootNode.add(serverNode);
+                        }
 
-            for (HBaseServer server : manager.getServers()) {
-                final DefaultMutableTreeNode serverNode = new DefaultMutableTreeNode(server);
-                for (HBaseTable table : server.getTables()) {
-                    serverNode.add(new DefaultMutableTreeNode(table));
-                }
-                rootNode.add(serverNode);
-            }
-
-            ApplicationManager.getApplication().invokeLater(() -> {
-                serverTree.setRootVisible(false);
-                serverTree.invalidate();
-                serverTree.setModel(new DefaultTreeModel(rootNode));
-                serverTree.revalidate();
-            });
-
-        });
+                        ApplicationManager.getApplication().invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                serverTree.setRootVisible(false);
+                                serverTree.invalidate();
+                                serverTree.setModel(new DefaultTreeModel(rootNode));
+                                serverTree.revalidate();
+                            }
+                        });
+                    }
+                });
     }
 
     public void apply() {
